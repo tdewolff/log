@@ -277,7 +277,7 @@ func Tracef(format string, v ...any) {
 	Log.Write(TraceLevel, fmt.Sprintf(format, v...), 1)
 }
 
-func NewStdLog(level Level) *log.Logger {
+func NewLogLogger(level Level) *log.Logger {
 	return log.New(&logWriter{level}, "", 0)
 }
 
@@ -294,7 +294,7 @@ func (l *logWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func NewSlog() *slog.Logger {
+func NewSlogLogger() *slog.Logger {
 	return slog.New(&slogHandler{})
 }
 

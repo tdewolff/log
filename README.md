@@ -34,6 +34,6 @@ log.Audit("example", data)
 log.Auditf("example %v", data)
 
 // if you need a loggers from the standard library to direct to this logger
-stdLogger := log.NewStdLog(log.ErrorLevel)
-slogger := log.NewSlog()
+logLogger := log.NewLogLogger(log.ErrorLevel)
+slogLogger := log.NewSlogLogger()
 ```
