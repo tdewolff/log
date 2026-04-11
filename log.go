@@ -70,19 +70,19 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "\033[41m\033[30mFATAL:\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[41m\033[30mFATAL:\033[0m %s:%d: %s\n", now, file, line, msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "\033[31mERROR:\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[31mERROR:\033[0m %s:%d: %s\n", now, file, line, msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "\033[33mWARN :\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[33mWARN :\033[0m %s:%d: %s\n", now, file, line, msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "\033[34mAUDIT:\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[34mAUDIT:\033[0m %s:%d: %s\n", now, file, line, msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "INFO : %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s INFO : %s:%d: %s\n", now, file, line, msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "\033[37mDEBUG:\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[37mDEBUG:\033[0m %s:%d: %s\n", now, file, line, msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "\033[90mTRACE:\033[0m %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s \033[90mTRACE:\033[0m %s:%d: %s\n", now, file, line, msg)
 		}
 	case File:
 		now := time.Now().Format("2006-01-02 15:04:05")
@@ -90,19 +90,19 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "FATAL: %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s FATAL: %s:%d: %s\n", now, file, line, msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "ERROR: %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s ERROR: %s:%d: %s\n", now, file, line, msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "WARN : %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s WARN : %s:%d: %s\n", now, file, line, msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "AUDIT: %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s AUDIT: %s:%d: %s\n", now, file, line, msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "INFO : %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s INFO : %s:%d: %s\n", now, file, line, msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "DEBUG: %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s DEBUG: %s:%d: %s\n", now, file, line, msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "TRACE: %s %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s TRACE: %s:%d: %s\n", now, file, line, msg)
 		}
 	case Journal:
 		log.mu.Lock()
