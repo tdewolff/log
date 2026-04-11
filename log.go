@@ -49,7 +49,7 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		return
 	}
 	if strings.HasSuffix(msg, "\n") {
-		msg = msg[:len(msg)-2]
+		msg = msg[:len(msg)-1]
 	}
 	if log.Callback != nil {
 		log.Callback(level, msg)
