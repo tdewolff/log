@@ -36,16 +36,16 @@ const (
 )
 
 type Logger struct {
-	w      io.Writer
-	level  Level
-	target Target
-	mu     sync.Mutex
+	w  io.Writer
+	mu sync.Mutex
 
+	Level    Level
+	Target   Target
 	Callback func(Level, string)
 }
 
 func (log *Logger) Write(level Level, msg string, calldepth int) {
-	if log.level < level {
+	if log.Level < level {
 		return
 	}
 	if strings.HasSuffix(msg, "\n") {
@@ -63,7 +63,7 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		file = file[slash+1:]
 	}
 
-	switch log.target {
+	switch log.Target {
 	case Terminal:
 		now := time.Now().Format("15:04:05")
 		log.mu.Lock()
@@ -109,25 +109,25 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "<2>FATAL: %s\n", msg)
+			fmt.Fprintf(log.w, "<2>FATAL: %s:%d: %s\n", file, line, msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "<3>ERROR: %s\n", msg)
+			fmt.Fprintf(log.w, "<3>ERROR: %s:%d: %s\n", file, line, msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "<4>WARN : %s\n", msg)
+			fmt.Fprintf(log.w, "<4>WARN : %s:%d: %s\n", file, line, msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "<6>AUDIT: %s\n", msg)
+			fmt.Fprintf(log.w, "<6>AUDIT: %s:%d: %s\n", file, line, msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "<6>INFO : %s\n", msg)
+			fmt.Fprintf(log.w, "<6>INFO : %s:%d: %s\n", file, line, msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "<7>DEBUG: %s\n", msg)
+			fmt.Fprintf(log.w, "<7>DEBUG: %s:%d: %s\n", file, line, msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "<7>TRACE: %s\n", msg)
+			fmt.Fprintf(log.w, "<7>TRACE: %s:%d: %s\n", file, line, msg)
 		}
 	}
 }
 
-var Log = Logger{os.Stderr, TraceLevel, Terminal, sync.Mutex{}, nil}
-var AuditLog = Logger{os.Stderr, AuditLevel, Terminal, sync.Mutex{}, nil}
+var Log = Logger{os.Stderr, sync.Mutex{}, TraceLevel, Terminal, nil}
+var AuditLog = Logger{os.Stderr, sync.Mutex{}, AuditLevel, Terminal, nil}
 
 func fdIsJournalStream(fd int) bool {
 	journalStream := os.Getenv("JOURNAL_STREAM")
@@ -147,12 +147,12 @@ func fdIsJournalStream(fd int) bool {
 
 func init() {
 	if fdIsJournalStream(syscall.Stderr) {
-		Log.target = Journal
-		AuditLog.target = Journal
+		Log.Target = Journal
+		AuditLog.Target = Journal
 	} else if stat, err := os.Stderr.Stat(); err == nil && stat.Mode()&os.ModeCharDevice == 0 {
 		// output piped to program or file
-		Log.target = File
-		AuditLog.target = File
+		Log.Target = File
+		AuditLog.Target = File
 	}
 }
 
@@ -161,26 +161,25 @@ type Loggers struct {
 }
 
 func Config(level, logFilename, auditFilename string) *Loggers {
-	logLevel, auditLevel := TraceLevel, AuditLevel
 	switch strings.ToLower(level) {
 	case "none":
-		logLevel = NoneLevel
-		auditLevel = NoneLevel
+		Log.Level = NoneLevel
+		AuditLog.Level = NoneLevel
 	case "fatal", "critical", "emergency":
-		logLevel = FatalLevel
-		auditLevel = NoneLevel
+		Log.Level = FatalLevel
+		AuditLog.Level = NoneLevel
 	case "error", "alert":
-		logLevel = ErrorLevel
-		auditLevel = NoneLevel
+		Log.Level = ErrorLevel
+		AuditLog.Level = NoneLevel
 	case "warn", "warning":
-		logLevel = WarningLevel
-		auditLevel = NoneLevel
+		Log.Level = WarningLevel
+		AuditLog.Level = NoneLevel
 	default:
-		logLevel = WarningLevel
+		Log.Level = WarningLevel
 	case "info", "information", "notice":
-		logLevel = InfoLevel
+		Log.Level = InfoLevel
 	case "debug":
-		logLevel = DebugLevel
+		Log.Level = DebugLevel
 	case "trace":
 		// no-op
 	}
@@ -190,7 +189,8 @@ func Config(level, logFilename, auditFilename string) *Loggers {
 			fmt.Fprintf(os.Stderr, "ERROR: create logfile: %v", err)
 			os.Exit(1)
 		} else {
-			Log = Logger{f, logLevel, File, sync.Mutex{}, nil}
+			Log.w = f
+			Log.Target = File
 			l.logFile = f
 		}
 	}
@@ -199,7 +199,8 @@ func Config(level, logFilename, auditFilename string) *Loggers {
 			fmt.Fprintf(os.Stderr, "ERROR: create audit logfile: %v", err)
 			os.Exit(1)
 		} else {
-			AuditLog = Logger{f, auditLevel, File, sync.Mutex{}, nil}
+			AuditLog.w = f
+			AuditLog.Target = File
 			l.auditFile = f
 		}
 	}
