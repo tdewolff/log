@@ -47,12 +47,8 @@ type Logger struct {
 func (log *Logger) Write(level Level, msg string, calldepth int) {
 	if log.Level < level {
 		return
-	}
-	if strings.HasSuffix(msg, "\n") {
+	} else if strings.HasSuffix(msg, "\n") {
 		msg = msg[:len(msg)-1]
-	}
-	if log.Callback != nil {
-		log.Callback(level, msg)
 	}
 
 	_, file, line, ok := runtime.Caller(calldepth + 1)
@@ -62,6 +58,10 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 	} else if slash := strings.LastIndexByte(file, '/'); slash != -1 {
 		file = file[slash+1:]
 	}
+	msg = fmt.Sprintf("%s:%d: %s", file, line, msg)
+	if log.Callback != nil {
+		log.Callback(level, msg)
+	}
 
 	switch log.Target {
 	case Terminal:
@@ -70,19 +70,19 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "\033[41m\033[30m%s FATAL:\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[41m\033[30m%s FATAL:\033[0m %s\n", now, msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "\033[31m%s ERROR:\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[31m%s ERROR:\033[0m %s\n", now, msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "\033[33m%s WARN :\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[33m%s WARN :\033[0m %s\n", now, msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "\033[34m%s AUDIT:\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[34m%s AUDIT:\033[0m %s\n", now, msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "%s INFO : %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s INFO : %s\n", now, msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "\033[37m%s DEBUG:\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[37m%s DEBUG:\033[0m %s\n", now, msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "\033[90m%s TRACE:\033[0m %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "\033[90m%s TRACE:\033[0m %s\n", now, msg)
 		}
 	case File:
 		now := time.Now().Format("2006-01-02 15:04:05")
@@ -90,38 +90,38 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "%s FATAL: %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s FATAL: %s\n", now, msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "%s ERROR: %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s ERROR: %s\n", now, msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "%s WARN : %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s WARN : %s\n", now, msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "%s AUDIT: %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s AUDIT: %s\n", now, msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "%s INFO : %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s INFO : %s\n", now, msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "%s DEBUG: %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s DEBUG: %s\n", now, msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "%s TRACE: %s:%d: %s\n", now, file, line, msg)
+			fmt.Fprintf(log.w, "%s TRACE: %s\n", now, msg)
 		}
 	case Journal:
 		log.mu.Lock()
 		defer log.mu.Unlock()
 		switch level {
 		case FatalLevel:
-			fmt.Fprintf(log.w, "<2>FATAL: %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<2>FATAL: %s\n", msg)
 		case ErrorLevel:
-			fmt.Fprintf(log.w, "<3>ERROR: %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<3>ERROR: %s\n", msg)
 		case WarningLevel:
-			fmt.Fprintf(log.w, "<4>WARN : %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<4>WARN : %s\n", msg)
 		case AuditLevel:
-			fmt.Fprintf(log.w, "<6>AUDIT: %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<6>AUDIT: %s\n", msg)
 		case InfoLevel:
-			fmt.Fprintf(log.w, "<6>INFO : %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<6>INFO : %s\n", msg)
 		case DebugLevel:
-			fmt.Fprintf(log.w, "<7>DEBUG: %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<7>DEBUG: %s\n", msg)
 		case TraceLevel:
-			fmt.Fprintf(log.w, "<7>TRACE: %s:%d: %s\n", file, line, msg)
+			fmt.Fprintf(log.w, "<7>TRACE: %s\n", msg)
 		}
 	}
 }
