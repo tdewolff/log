@@ -12,6 +12,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unicode"
 )
 
 type Level int
@@ -50,6 +51,7 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 	} else if strings.HasSuffix(msg, "\n") {
 		msg = msg[:len(msg)-1]
 	}
+	msg = printable(msg)
 
 	_, file, line, ok := runtime.Caller(calldepth + 1)
 	if !ok {
@@ -65,7 +67,7 @@ func (log *Logger) Write(level Level, msg string, calldepth int) {
 
 	switch log.Target {
 	case Terminal:
-		now := time.Now().Format("15:04:05")
+		now := time.Now().Format("15:04:05.000")
 		log.mu.Lock()
 		defer log.mu.Unlock()
 		switch level {
@@ -338,4 +340,29 @@ func (l *slogHandler) WithGroup(group string) slog.Handler {
 		attrs:  l.attrs,
 	}
 	return l2
+}
+
+func printable(s string) string {
+	sb := &strings.Builder{}
+	sb.Grow(len(s))
+	for _, r := range s {
+		if !unicode.IsPrint(r) && r != '\n' && r != '\t' {
+			if r == '\r' {
+				sb.WriteByte('\\')
+				sb.WriteByte('r')
+			} else if r == 0 {
+				sb.WriteByte('\\')
+				sb.WriteByte('0')
+			} else if r <= 0xFF {
+				fmt.Fprintf(sb, "\\x%02X", r)
+			} else if r <= 0xFFFF {
+				fmt.Fprintf(sb, "\\u%04X", r)
+			} else {
+				fmt.Fprintf(sb, "\\U%08X", r)
+			}
+		} else {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
 }

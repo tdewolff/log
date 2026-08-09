@@ -12,9 +12,9 @@ func main() {
 	log.Warning("lala", x)
 	log.Error("lala", x)
 
-	l := log.NewStdLog(log.WarningLevel)
+	l := log.NewLogLogger(log.WarningLevel)
 	l.Println("lalala")
 
-	sl := log.NewSlog()
+	sl := log.NewSlogLogger()
 	sl.Warn("lalala")
 }

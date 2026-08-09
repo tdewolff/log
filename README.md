@@ -1,7 +1,7 @@
 # Log
 
 - Automatically detect if log is directed to file or journald and adjust accordingly.
-- Set colors for log levels in terminal.
+- Set colours for log levels in terminal.
 - Add time and file + line number to each entry.
 
 ## Usage
